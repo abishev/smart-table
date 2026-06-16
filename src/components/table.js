@@ -4,7 +4,6 @@ export function initTable(settings, onAction) {
   const { tableTemplate, rowTemplate, before, after } = settings;
   const root = cloneTemplate(tableTemplate);
 
-  // ✅ Исправлено: [...before] чтобы не мутировать
   [...before].reverse().forEach((subName) => {
     root[subName] = cloneTemplate(subName);
     root.container.prepend(root[subName].container);
@@ -19,7 +18,6 @@ export function initTable(settings, onAction) {
     onAction();
   });
 
-  // ✅ Исправлено: добавлена задержка 0
   root.container.addEventListener("reset", () => {
     setTimeout(onAction, 0);
   });
@@ -30,6 +28,19 @@ export function initTable(settings, onAction) {
   });
 
   const render = (data) => {
+    // Ищем контейнер для строк
+    let rowsContainer = root.container.querySelector("tbody");
+    if (!rowsContainer) {
+      rowsContainer = root.container.querySelector("table");
+    }
+    if (!rowsContainer) {
+      rowsContainer = root.elements.rows; // запасной вариант
+    }
+    if (!rowsContainer) {
+      console.error("Не найден контейнер для строк");
+      return;
+    }
+
     const nextRows = data.map((item) => {
       const row = cloneTemplate(rowTemplate);
       const elements = row.container.querySelectorAll("[data-name]");
@@ -41,7 +52,8 @@ export function initTable(settings, onAction) {
       });
       return row.container;
     });
-    root.elements.rows.replaceChildren(...nextRows);
+
+    rowsContainer.replaceChildren(...nextRows);
   };
 
   return { ...root, render };
