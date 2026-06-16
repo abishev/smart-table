@@ -4,7 +4,7 @@ export function initTable(settings, onAction) {
   const { tableTemplate, rowTemplate, before, after } = settings;
   const root = cloneTemplate(tableTemplate);
 
-  // Используем [...before] чтобы не мутировать оригинальный массив
+  // ✅ Исправлено: [...before] чтобы не мутировать
   [...before].reverse().forEach((subName) => {
     root[subName] = cloneTemplate(subName);
     root.container.prepend(root[subName].container);
@@ -19,6 +19,7 @@ export function initTable(settings, onAction) {
     onAction();
   });
 
+  // ✅ Исправлено: добавлена задержка 0
   root.container.addEventListener("reset", () => {
     setTimeout(onAction, 0);
   });
@@ -31,7 +32,6 @@ export function initTable(settings, onAction) {
   const render = (data) => {
     const nextRows = data.map((item) => {
       const row = cloneTemplate(rowTemplate);
-
       const elements = row.container.querySelectorAll("[data-name]");
       elements.forEach((el) => {
         const key = el.dataset.name;
@@ -39,10 +39,8 @@ export function initTable(settings, onAction) {
           el.textContent = item[key];
         }
       });
-
       return row.container;
     });
-
     root.elements.rows.replaceChildren(...nextRows);
   };
 
