@@ -30,13 +30,19 @@ export function initTable(settings, onAction) {
   const render = (data) => {
     const nextRows = data.map((item) => {
       const row = cloneTemplate(rowTemplate);
-      Object.keys(item).forEach((key) => {
-        if (row.elements[key]) {
-          row.elements[key].textContent = item[key];
+
+      // Ищем все элементы с атрибутом data-name внутри строки
+      const elements = row.container.querySelectorAll("[data-name]");
+      elements.forEach((el) => {
+        const key = el.dataset.name;
+        if (item[key] !== undefined) {
+          el.textContent = item[key];
         }
       });
+
       return row.container;
     });
+
     root.elements.rows.replaceChildren(...nextRows);
   };
 
