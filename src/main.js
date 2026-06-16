@@ -16,19 +16,16 @@ function collectState() {
   const state = processFormData(new FormData(sampleTable.container));
   const rowsPerPage = parseInt(state.rowsPerPage);
   const page = parseInt(state.page ?? 1);
-
   return { ...state, rowsPerPage, page };
 }
 
 function render(action) {
   let state = collectState();
   let result = [...data];
-
   result = applySearching(result, state, action);
   result = applyFiltering(result, state, action);
   result = applySorting(result, state, action);
   result = applyPagination(result, state, action);
-
   sampleTable.render(result);
 }
 
@@ -42,12 +39,6 @@ const sampleTable = initTable(
   render,
 );
 
-const applySearching = initSearching("search");
-const applyFiltering = initFiltering(sampleTable.filter.elements, indexes);
-const applySorting = initSorting([
-  sampleTable.header.elements.sortByDate,
-  sampleTable.header.elements.sortByTotal,
-]);
 const applyPagination = initPagination(
   sampleTable.pagination.elements,
   (el, page, isCurrent) => {
@@ -59,6 +50,15 @@ const applyPagination = initPagination(
     return el;
   },
 );
+
+const applySorting = initSorting([
+  sampleTable.header.elements.sortByDate,
+  sampleTable.header.elements.sortByTotal,
+]);
+
+const applySearching = initSearching("search");
+
+const applyFiltering = initFiltering(sampleTable.filter.elements, indexes);
 
 document.querySelector("#app").appendChild(sampleTable.container);
 render();
