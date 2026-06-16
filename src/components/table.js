@@ -28,17 +28,14 @@ export function initTable(settings, onAction) {
   });
 
   const render = (data) => {
-    // Ищем контейнер для строк
-    let rowsContainer = root.container.querySelector("tbody");
+    // Гарантируем наличие контейнера для строк
+    let rowsContainer = root.elements.rows;
     if (!rowsContainer) {
-      rowsContainer = root.container.querySelector("table");
-    }
-    if (!rowsContainer) {
-      rowsContainer = root.elements.rows; // запасной вариант
-    }
-    if (!rowsContainer) {
-      console.error("Не найден контейнер для строк");
-      return;
+      rowsContainer = root.container.querySelector("tbody");
+      if (!rowsContainer) {
+        rowsContainer = document.createElement("tbody");
+        root.container.appendChild(rowsContainer);
+      }
     }
 
     const nextRows = data.map((item) => {

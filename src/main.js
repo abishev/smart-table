@@ -12,12 +12,6 @@ import { initSearching } from "./components/searching.js";
 
 const { data, ...indexes } = initData(sourceData);
 
-let sampleTable;
-let applySearching;
-let applyFiltering;
-let applySorting;
-let applyPagination;
-
 function collectState() {
   const state = processFormData(new FormData(sampleTable.container));
   const rowsPerPage = parseInt(state.rowsPerPage);
@@ -38,8 +32,7 @@ function render(action) {
   sampleTable.render(result);
 }
 
-// 1. Создаём таблицу
-sampleTable = initTable(
+const sampleTable = initTable(
   {
     tableTemplate: "table",
     rowTemplate: "row",
@@ -49,14 +42,13 @@ sampleTable = initTable(
   render,
 );
 
-// 2. Инициализируем модули, которым нужны элементы таблицы
-applySearching = initSearching("search");
-applyFiltering = initFiltering(sampleTable.filter.elements, indexes);
-applySorting = initSorting([
+const applySearching = initSearching("search");
+const applyFiltering = initFiltering(sampleTable.filter.elements, indexes);
+const applySorting = initSorting([
   sampleTable.header.elements.sortByDate,
   sampleTable.header.elements.sortByTotal,
 ]);
-applyPagination = initPagination(
+const applyPagination = initPagination(
   sampleTable.pagination.elements,
   (el, page, isCurrent) => {
     const input = el.querySelector("input");
@@ -68,6 +60,5 @@ applyPagination = initPagination(
   },
 );
 
-// 3. Добавляем таблицу в DOM и рендерим
 document.querySelector("#app").appendChild(sampleTable.container);
 render();
