@@ -1,7 +1,6 @@
 import "./fonts/ys-display/fonts.css";
 import "./style.css";
 
-import { data as sourceData } from "./data/dataset_1.js";
 import { initData } from "./data.js";
 import { processFormData } from "./lib/utils.js";
 import { initTable } from "./components/table.js";
@@ -10,23 +9,31 @@ import { initSorting } from "./components/sorting.js";
 import { initFiltering } from "./components/filtering.js";
 import { initSearching } from "./components/searching.js";
 
-const { data, ...indexes } = initData(sourceData);
+const api = initData();
 
 function collectState() {
   const state = processFormData(new FormData(sampleTable.container));
-  const rowsPerPage = parseInt(state.rowsPerPage);
-  const page = parseInt(state.page ?? 1);
+  const rowsPerPage = parseInt(state.rowsPerPage ?? "10", 10) || 10;
+  const page = parseInt(state.page ?? 1, 10) || 1;
   return { ...state, rowsPerPage, page };
 }
 
-function render(action) {
-  let state = collectState();
-  let result = [...data];
-  result = applySearching(result, state, action);
-  result = applyFiltering(result, state, action);
-  result = applySorting(result, state, action);
-  result = applyPagination(result, state, action);
-  sampleTable.render(result);
+async function render(action) {
+  try {
+    const state = collectState();
+    let query = {};
+
+    query = applySearching(query, state, action);
+    query = applyFiltering(query, state, action);
+    query = applySorting(query, state, action);
+    query = applyPagination(query, state, action);
+
+    const { total, items } = await api.getRecords(query);
+    updatePagination(total, query);
+    sampleTable.render(items);
+  } catch (error) {
+    console.error("Failed to render table", error);
+  }
 }
 
 const sampleTable = initTable(
@@ -39,7 +46,7 @@ const sampleTable = initTable(
   render,
 );
 
-const applyPagination = initPagination(
+const { applyPagination, updatePagination } = initPagination(
   sampleTable.pagination.elements,
   (el, page, isCurrent) => {
     const input = el.querySelector("input");
@@ -58,7 +65,17 @@ const applySorting = initSorting([
 
 const applySearching = initSearching("search");
 
-const applyFiltering = initFiltering(sampleTable.filter.elements, indexes);
+const { applyFiltering, updateIndexes } = initFiltering(
+  sampleTable.filter.elements,
+);
 
 document.querySelector("#app").appendChild(sampleTable.container);
-render();
+
+async function init() {
+  const indexes = await api.getIndexes();
+  updateIndexes({
+    searchBySeller: indexes.sellers,
+  });
+}
+
+init().then(render);

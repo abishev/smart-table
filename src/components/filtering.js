@@ -1,31 +1,50 @@
-import { createComparison, defaultRules } from "../lib/compare.js";
-
-const compare = createComparison(defaultRules);
-
-export function initFiltering(elements, indexes) {
-  Object.keys(indexes).forEach((indexName) => {
-    if (indexName === "sellers") {
-      const options = Object.values(indexes[indexName]).map((name) => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        return option;
+export function initFiltering(elements) {
+  const updateIndexes = (indexes) => {
+    Object.keys(indexes).forEach((elementName) => {
+      const target = elements[elementName];
+      if (!target) return;
+      const defaultOption = target
+        .querySelector('option[value=""]')
+        ?.cloneNode(true);
+      const options = Object.values(indexes[elementName]).map((name) => {
+        const el = document.createElement("option");
+        el.textContent = name;
+        el.value = name;
+        return el;
       });
-      const searchBySellerElement = elements.searchBySeller;
-      options.forEach((option) => searchBySellerElement.appendChild(option));
-    }
-  });
+      target.replaceChildren(...[defaultOption, ...options].filter(Boolean));
+    });
+  };
 
-  return (data, state, action) => {
+  const applyFiltering = (query, state, action) => {
     if (action && action.name === "clear") {
-      action.parentElement.querySelector("input").value = "";
-      state[action.dataset.field] = "";
+      const parent = action.parentElement;
+      const input = parent?.querySelector("input, select");
+      const field = action.dataset.field;
+      if (input) {
+        input.value = "";
+      }
+      if (field && field in state) {
+        state[field] = "";
+      }
     }
-    return data.filter((row) =>
-      compare(row, {
-        ...state,
-        total: [state.totalFrom, state.totalTo],
-      }),
-    );
+
+    const filter = {};
+    Object.keys(elements).forEach((key) => {
+      const el = elements[key];
+      if (!el) return;
+      if ((el.tagName === "INPUT" || el.tagName === "SELECT") && el.value) {
+        filter[`filter[${el.name}]`] = el.value;
+      }
+    });
+
+    return Object.keys(filter).length
+      ? Object.assign({}, query, filter)
+      : query;
+  };
+
+  return {
+    updateIndexes,
+    applyFiltering,
   };
 }

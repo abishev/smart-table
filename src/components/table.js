@@ -4,10 +4,13 @@ export function initTable(settings, onAction) {
   const { tableTemplate, rowTemplate, before, after } = settings;
   const root = cloneTemplate(tableTemplate);
 
-  before.reverse().forEach((subName) => {
-    root[subName] = cloneTemplate(subName);
-    root.container.prepend(root[subName].container);
-  });
+  before
+    .slice()
+    .reverse()
+    .forEach((subName) => {
+      root[subName] = cloneTemplate(subName);
+      root.container.prepend(root[subName].container);
+    });
 
   after.forEach((subName) => {
     root[subName] = cloneTemplate(subName);
@@ -19,7 +22,7 @@ export function initTable(settings, onAction) {
   });
 
   root.container.addEventListener("reset", () => {
-    setTimeout(onAction, 100);
+    setTimeout(onAction);
   });
 
   root.container.addEventListener("submit", (e) => {
@@ -30,9 +33,8 @@ export function initTable(settings, onAction) {
   const render = (data) => {
     const nextRows = data.map((item) => {
       const row = cloneTemplate(rowTemplate);
-      // Заполняем все поля, которые есть в row.elements
       Object.keys(item).forEach((key) => {
-        if (key in row.elements) {
+        if (row.elements[key]) {
           row.elements[key].textContent = item[key];
         }
       });
